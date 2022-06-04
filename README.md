@@ -15,7 +15,8 @@
 
 ## 贡献 
 由贡献者编写部分的许可如下：
-[(Creative Commons BY-SA 4.0) 知识共享署名 - 相同方式共享 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)
+[(Creative Commons BY-SA 4.0) 知识共享署名 - 相同方式共享 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)  
+
 欢迎贡献  
 欢迎贡献  
 欢迎贡献  
