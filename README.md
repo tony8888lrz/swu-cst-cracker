@@ -1,4 +1,5 @@
-# swu-cst-cracker
+# 清华大学计算机系课程攻略  
+
 西南大学计科系课程攻略 Guidance for courses in Department of Computer Science, Southwest University
 ## 前言
 初入大学的你面对繁多课程也许会手足无措，cs本就是一个需要大量资料查阅的专业。  
