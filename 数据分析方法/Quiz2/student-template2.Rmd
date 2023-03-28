@@ -1,0 +1,152 @@
+---
+title: "STATS 201 Experimental Class 2"
+author: "runze liao, 222020321102007"
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+\large
+
+# Haemoglobin levels in athletes  
+
+Haeomoglobin concentration in the blood is a measure of how efficiently athletes can deliver oxygen to muscles during exercise. The aim of the study below was to generate reference values of haemoglobin concentration for athletes of different body sizes, against which blood samples from future athletes could be compared to inform their training programmes. The study measured haemoglobin concentration from 113 randomly selected Australian athletes, all of whom were performing at national level in their respective sports, and various body-size measurements for predictor variables.   
+
+Each row in athletes.csv corresponds to an athlete. The variables are 
+• Hconc: Haemoglobin concentration in blood (grams per decalitre).   
+
+• Sex: Sex, either M for male or F for female.   
+
+• Height: Height (cm).   
+
+• Weight: Weight (kg).   
+
+• LBM: Body mass other than fat (kg).  
+
+Conduct a full analysis, and include Methods and Assumption Checks along with an Executive Summary. In particular, we are interested in addressing a few questions of interest in the Executive Summary:   
+
+• What are the predicted haemoglobin concentration levels for a male and a female 
+athlete, both with height 170 cm, weight 70kg, and lean body mass 60 kg?   
+
+• Is the relationship between haemoglobin concentration and height different for males 
+than it is for females?   
+
+# Code and output
+```{r}
+library(s20x)
+require(s20x)
+## Loading in the data.
+athletes.df = read.csv(file = "athletes.csv", header = TRUE)
+athletes.df$Sex = factor(athletes.df$Sex)
+## Plot the data.
+## INSERT CODE HERE.
+## Analyse the data.
+## INSERT CODE HERE.
+```
+```{r}
+pairs20x(athletes.df[,c(1,2,3,4,5)])#the relation variable graph  
+```  
+```{r}
+#by using the ggplot to see the relationship 
+library(ggplot2)
+ggplot(data=athletes.df, aes(x=Height, y=Hconc, group=Sex, color=Sex)) +
+labs(x="Height", y="Hconc") +
+geom_point() +
+geom_smooth(method="lm") +
+theme(panel.grid=element_blank(), panel.background=element_rect(color='black')) +
+guides(color=guide_legend(title="Sex"))
+```
+We can see that the the lines are parallel, so we consider there's no interaction between the Height and the Sex.  
+
+From the pairs graph it seems that the males have a higher mean Haemoglobin concentration in blood than female. The higher the height, the higher the Haemoglobin(a little bit fluctuation.), As Weight increases, the expected Hconc increases. There's a weak positive relationship between Weight and Hconc, howerver, not too much relationship between LBM and Hconc.  
+
+```{r}
+athletes.df $Sex = factor(athletes.df $ Sex) 
+athletes.fit = lm(Hconc~Sex,data = athletes.df)
+cooks20x(athletes.fit)
+athletes.fit2 = lm(Hconc~Sex + Height,data = athletes.df)
+cooks20x(athletes.fit2)
+athletes.fit3 = lm(Hconc~Sex + Height + Weight,data = athletes.df)
+cooks20x(athletes.fit3)
+athletes.fit4 = lm(Hconc~Sex + Height + Weight + LBM,data = athletes.df)
+cooks20x(athletes.fit4)
+```  
+
+Next we will fit the model  
+
+```{r}
+athletes.fit = lm(Hconc~Sex+Height+Weight+LBM, data = athletes.df)
+plot(athletes.fit,which =1)
+```  
+
+The EOV and no trend assumption seem to be okay.  
+
+```{r}
+normcheck(athletes.fit)
+cooks20x(athletes.fit)
+```  
+
+  
+Seems Normal Distribution, and no strong influential points. We can trust our linear model.  
+
+```{r}
+summary(athletes.fit)
+```
+Worthy attention, the LBM and Height have already explained the Weight, so we remove the Weight, We can see that so many the P-value of Weight and LBM is > 0.05, According to the Occam Razor Principle, we only have the Sex, Height, LBM. So We fit the latest model.  
+
+```{r}
+athletes.fit5 = lm(Hconc~Sex+Height+LBM, data = athletes.df)
+```
+```{r}
+plot(athletes.fit5,which =1)
+```
+```{r}
+normcheck(athletes.fit5)
+```
+The EOV check is good.
+```{r}
+cooks20x(athletes.fit5)
+summary(athletes.fit5)
+```
+The point 87 might seem stange, but we will keep it rather than delete it. No other strong influence point, everything is fine.  
+```{r}
+confint(athletes.fit5)
+```
+
+Next we predict some situation:  
+```{r}
+pred.df = data.frame(Sex = c("F","M"), Height = c(170,170), LBM = c(60,60))
+predict(athletes.fit5, pred.df, interval = "prediction")
+```
+
+# Methods and Assumption Checks
+Looking at the pairs plot, we saw that the : Haemoglobin concentration in blood was related to a number of our explanatory variables. So we will construct a multiple linear regression model with a suitable selection of the explanatory variables.  
+
+We decided to include the Sex and Height and LBM as the explanatory variable, but had to remove the weight as an explanatory due to multicollinearity. All model assumptions were satisfied by our final model.  
+
+Our final model is:
+$$Hconc_i = \beta_0 + \beta_1 * Sex_i + \beta_2 * Height_i + \beta_3 * LBM_i + \epsilon_i $$
+where $\epsilon_i$ ~ $iid.N(0,\sigma^2)$. Here our indicator variable takes value 1 if the Sex is Male.  
+
+Our model explains about 31% of the variability in Haemoglobin concentration in blood.  
+
+# Executive Summary
+We wanted to have a model to explain the Haemoglobin concentration in blood.   
+
+Keeping all other variables constant:   
+
+* We estimate that for each additional centimetre in athletes' height, the Haemoglobin concentration in blood decreased by -0.032 to -0.084  
+
+* We estimate that for each one more LBM in athletes, the Haemoglobin concentration in blood increased by 0.02 to 0.07.  
+
+* We estimate that the Haemoglobin concentration in blood, the male is averagely more 1.39 than the female.  
+
+What are the predicted haemoglobin concentration levels for a male and a female 
+athlete, both with height 170 cm, weight 70kg, and lean body mass 60 kg?  
+
+For a female and a male athlete, both with height 170 cm, weight 70kg, and lean body mass 60 kg, we predict the Haemoglobin concentration in blood(individual) between 12.7 to 16.2 and 14.0 to 17.6, respectively, these interval were very wide due to the high variability between athletes.    
+
+Is the relationship between haemoglobin concentration and height different for males 
+than it is for females?  
+Nope, the graph above shows that the haemoglobin concentration and height for males and females, they have no interactions and For the same Height and LBM, the Male's Haemoglobin concentration is larger than 0.87 to 1.91 than the Female.

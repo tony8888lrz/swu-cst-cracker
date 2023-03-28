@@ -1,0 +1,99 @@
+---
+title: "STATS 201 Experimental Class 3"
+author: "Runze Liao, 222020321102007"
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+\large
+
+# Pizza size
+
+# Code and output
+
+```{r}
+## Loading in the data.
+library(s20x)
+library(emmeans)
+
+pizza.df = read.table(file = "pizza.txt", header = TRUE)
+pizza.df$store = as.factor(pizza.df$store)
+pizza.df$crust = as.factor(pizza.df$crust)
+## Plot the data.
+## INSERT CODE HERE.
+## Analyse the data.
+## INSERT CODE HERE.
+```
+```{r}
+interactionPlots(size~store+crust, data = pizza.df)
+```
+
+Note we do not have parallel lines, so we indicate that there may have some interaction between the two factor.
+```{r}
+pizza.fit = lm(size~store*crust, data = pizza.df)
+```
+```{r}
+plot(pizza.fit, which = 1)
+normcheck(pizza.fit)
+cooks20x(pizza.fit)
+```
+
+The residual plot seems good, EOV assumption is satisfied. The normality assumption seems good too, other than a lack of negative residuals.  
+
+We see the cooks distance, all points < 0.4, no strong influential data points. However, points 117, 181,226 seems strange, but we will keep it. 
+
+All assumptions were satisfied, we conduct we can trust our fit model, Let us see the summary.  
+```{r}
+summary(pizza.fit)
+```
+All p-vlaue of coefficients and interaction coefficients are less than 0.05, it seemd that we can trust our models.  
+
+```{r}
+#emmeans(pizza.fit, specs = store~crust)$emmeans
+summary2way(pizza.fit, page = "interaction")
+```
+
+# Methods and Assumption Checks
+We have 2 explanatory factors variable, namely the store and crust, the store can be A or B, the crust could be thin, mid and thick.So we fitted a two-way ANOVA model with interaction between the crust and store.   
+
+Through the interaction plot we can see that the two variables have interactions, so we build a linear model with interaction by having tow factors explanatory variables, the EOV check is good, the Normal Check is good, and no other influence points, all the assumptions were satisfied by our final model.  
+
+Our final model is:
+$$Size_i = \beta_0 + \beta_1 \times store_i + \beta_2 \times crustthick_i + \beta_3 \times crustthin_i \times store_i + \beta_4 \times storeB:crustthick_i + \beta_5 \times storeB:crustthin_i + \epsilon_i $$
+where $\epsilon_i$ ~ $iid.N(0,\sigma^2)$. And one of the indicators of store takes it value 1 when the store is B, the indicators of crustthin take value of 1 when the crust is thin, crustthick take value of 1 when the crust is thick, otherwise, it is mid.  
+
+Our model explains about 49.7% of the variability in pizza size.  
+
+
+# Executive Summary
+We wanted to have a model to explain the the pizza's size influenced by its crust and its store methods.  so we build a linear model with interaction by having tow factors explanatory variables. 
+There was evidence to suggest that the explanatory variables were related to the response variable, we We have evidence that the difference in pizza size between stores depend on the
+crust type. 
+
+We estimate that: 
+
+- With the Same store A, the different crust thin is larger 0.92 than mid.  
+- With the same Store B, the different crust thin is larger 2.20 than mid. 
+- With the Same store A, the different crust thin is larger 0.61 than thick.  
+- With the same Store B, the different crust thin is larger 2.26 than thick.  
+
+- With the same crust mid, the different store A is larger than 2.03 than B. 
+- With the same crust thick, the different store A is larger than 2.71 than B. 
+- With the same crust thin, the different store A is larger than 0.75 than B. 
+- with the same crust, the size of Store A make bigger than B for 2.29 on average.  
+So we can say that the store A actually make bigger pizzas than B.
+
+Does Store A actually make bigger pizzas?  
+
+Yes, and we can see that the Store A make bigger than B 2.29. 
+
+Is the type of crust related to the size of the pizza?   
+
+Yes, the coefficient of crust is all larger than 0.05, it is in the 95% confindence interval, so we have the evidence that the type of crust is related to the size of the pizza.
+
+Does the difference in pizza size between stores depend on the crust type?  
+
+Yes, firstly, we can see the interaction Plot, it is lack of parallel lines. Secondly, we have the evidence that the pizza size depends on curst type by having the p-value is smaller than 0.05. So they have interaction. 
+

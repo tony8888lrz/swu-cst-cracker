@@ -1,0 +1,114 @@
+---
+title: "STATS 201 Experimental Class 1"
+author: "liaorunze, 222020321102007"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+\large
+
+# Gravity experiment
+A group of physics students at the University of Auckland conducted a projectile 
+experiment using an electromagnetic catapult to eject a steel ball in to the air at a fixed 
+speed. At a given time after ejection, a stereo camera would take a photo to measure the 
+height of the ball. A total of 30 trials were conducted. 
+Each row in GravityExpt.txt corresponds to a single trial. The variables are 
+• Time: Seconds after ejection of the steel ball, between 0.2 and 2. 
+
+• Height: Response variable - the height of the ball in metres. 
+
+# Question we want to explore
+• What is the estimated value of 𝑔?   
+
+• Is our estimated value of 𝑔 consistent with the theoretical value of 9.80? [Hint - calculate the 95% confidence for 𝑔.] 
+
+• Theory also tells us that the true value of the coefficient of the intercept term is zero. Is this consistent with our analysis? 
+
+• [Optional] Refit the model without the intercept, and compare the CI for 𝑔 with the CI you calculated earlier. 
+
+# Code and output
+
+```{r}
+library(s20x)
+## Loading in the data.
+Gravity.df = read.table("C:/Users/Tony/Desktop/experiment_1/GravityExpt.txt", header = TRUE)
+## Plot the data.
+plot(Height~Time, data = Gravity.df)
+```
+
+In the plot figure we find a clear quadratic relationship between the independent and dependent variables, so we don't need fit a standard linear model, we can fit a quadratic curve.  
+
+```{r}
+Gravity.fit = lm(Height~Time + I(Time^2), data = Gravity.df)
+plot(Gravity.fit, which = 1)
+```
+
+We find that the residuals are essentially the same through the residual analysis graph, satisfying the same distribution  
+
+```{r}
+normcheck(Gravity.fit)
+```
+Quantile line is basically on a straight line and the residuals are normally distributed (even if they are not particularly good, we can optimize them later)  
+
+```{r}
+cooks20x(Gravity.fit)
+```
+Since the Cook's Distance for each observation did not exceed 0.4. We have reasonS to believe that these data do not have strong influence points.  
+
+```{r}
+summary(Gravity.fit)
+```
+
+Since the p value of the constant term is much larger than 0.05, we have good reason to reject it and can set him to 0, but we are doing this later
+
+```{r}
+-2*confint(Gravity.fit)
+-2 * coef(Gravity.fit)[3]
+```
+
+```{r}
+## Answer research questions.
+## INSERT CODE HERE.
+```
+
+# Methods and Assumption Checks
+
+The scatter plot of Height and Time suggested curvature in the relationship.  
+
+We began to see the Scatter Plot and a strong quadratic relationship is found between the two of them. Then we directly fit a quadratic model. The residual plot from the fit of a quadratic linear model showed fairly constant scatter.    
+
+All model assumptions look satisfied once we added the quadratic term to the linear model.  
+
+Our final model is:
+$$Height_i = \beta_0 + \beta_1 * Time_i + \beta_2 * Time_i^2 + \epsilon_i $$
+where $\epsilon_i$~$N(0,\sigma^2)$  
+
+Our model explained 99.46% of the vairability in the Gravity experiment.
+
+
+# Executive Summary
+We are interested in building a model to estimate the relation between Height and Time.  
+
+The relationship between Height and Time was quadratic is quadratic.  
+
+Here, we want to estimate the coefficient before it. Thanks to the Physicist, we already know that it is 9.8 and By observing the confidence interval we know that it is reasonable for the value between [9.46,10.03], thankfully 9.8 is in it.  
+
+• What is the estimated value of 𝑔?   
+The estimate value of g is  9.748106  
+
+• Is our estimated value of 𝑔 consistent with the theoretical value of 9.80? [Hint - calculate the 95% confidence for 𝑔.] 
+We calculate the confidence interval of g is between [9.46,10.03], and the 9.80 is in this interval, so the estimated value of g consistent with the theoretical value of 9.80.  
+
+• Theory also tells us that the true value of the coefficient of the intercept term is zero. Is this consistent with our analysis? 
+The estimate of Intercept is 0.0008333 and the p-value of it is 0.991, which is > 0.05, we have strong evidence to deny the null hypothesis, so we can see that the coefficient of the intercept term is zero.  
+
+• [Optional] Refit the model without the intercept, and compare the CI for 𝑔 with the CI you calculated earlier.
+```{r}
+Gravity.fit2 = lm(Height~-1+Time + I(Time^2), data = Gravity.df)
+summary(Gravity.fit2)
+-2*confint(Gravity.fit)
+-2 * coef(Gravity.fit)[3]
+```
+The estimate g and its CI has no change.  

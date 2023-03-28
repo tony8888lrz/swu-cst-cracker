@@ -1,0 +1,103 @@
+---
+title: "STATS 201 Experimental Class 4"
+author: runze liao 222020321102007
+output:
+  word_document: default
+  pdf_document: default
+---
+
+# Code and output
+
+```{r}
+## Loading in the data.
+vote.df = read.table("vote-grouped.txt", header = TRUE)
+## Creating the proportion of senators who voted YES.
+vote.df$p = vote.df$yes/(vote.df$yes+vote.df$no)## Add variable p to the dataframe here.
+## Plot the data.
+## Making a plotting area.
+plot(p ~ contributions, type = "n", data = vote.df, ylim = c(0, 1),
+     xlab = "Contributions (tens of thousands of dollars)",
+     ylab = "Proportion voting YES")
+## Making some horizontal lines at the limits of the proportion.
+abline(h = c(0, 1), col = "lightgrey")
+## Plotting the data with each point representing the senator's party.
+text(p ~ contributions, labels = party, col = ifelse(party == "D", "blue", "red"), 
+     data = vote.df)
+## Analyse the data.
+## INSERT CODE HERE.
+```
+From this plot, we can see that R of the proportion of yes is larger than D. And for each party, there's no clear linear relation between the contributions and Proportion for voting yes. The proportions retained seem to follow an “S” shape.
+
+We will fit a logistic regression model to fit our data.
+```{r}
+vote.fit = glm(cbind(yes,no)~party*contributions, family = binomial, data = vote.df)
+```
+
+```{r}
+plot(vote.fit,which =1)
+```
+
+
+The residual plot is strange, seems that not satisfy the EOV check, but we will still keep it by having glm.  
+
+```{r}
+summary(vote.fit)
+```
+
+We can see the interaction part of coefficient is out of the 95% confidence interval, so we will fit a model without interaction.  
+
+```{r}
+vote.fit2 = glm(cbind(yes,no)~party+contributions, family = binomial, data = vote.df)
+plot(vote.fit,which =1)
+```
+```{r}
+summary(vote.fit2)
+```
+```{r}
+1-pchisq(6.5633,5)
+```
+It is a good model we can trust as its' all coefficient are in 95% CI(p-value < 0.5). and the check of our residual deviance p-value 0.255 is larger than the 0.05.  
+
+```{r}
+100*(1-exp(confint(vote.fit2)))
+```
+```{r}
+plot(p~contributions,type="n",data=vote.df,ylim=c(0,1),xlab="Contributions (tens of thousands of dollars)",ylab="Proportion voting YES")
+abline(h=c(0,1))
+text(p~contributions,labels=party,col=ifelse(party=="D","blue","red"),data=vote.df)
+x2=seq(-1,4,length.out=1000)
+pred.r=predict(vote.fit2,newdata=data.frame(party=rep("R",1000),contributions=x2),type="response")
+pred.d=predict(vote.fit2,newdata=data.frame(party=rep("D",1000),contributions=x2),type="response")
+lines(x2,pred.r,col="red")
+lines(x2,pred.d,col="blue")
+```
+We plot a predict line above with the specific functions in R.  
+
+# Methods and Assumption Checks
+As the response variable stands for the number of senators who voted YES and No on the bill for a particular combination of party, we have therefore generalized linear model with a binomial family, we have two explanatory variables, party(factor) and contributions(numeric) respectively. The plot of the voting proportions show a S association with contribution, so we fit a logitic regression model to these data.  
+
+The check of the residual deviance had p-value of 0.255 > 0.05, we can trust our binomial model.
+
+Our final model is:
+$$ log(Odds_i) = \beta_0 + \beta_1 \times party_i + \beta_2 \times contributions $$
+Where $Odds_i$ is the odds of the retention of voting yes, and party is indicating variable, taking 1 if it is Republican otherwise Democrat.
+
+
+# Executive Summary
+We estimate that:
+
+- Every 1 contribution(tens of thousands of dollars) increase comes with the increase of the odds between 32.0% and 300.1%.  
+- With the party Republican, the Odds will be between 2.59 and 23.37 times than the party Democrat.
+
+We are interested in determining if the amount of contributions from the automotive industry is related to the probability a senator votes YES on the bill.  
+
+From the estimation above, the answer is yes.  We can see that the coefficient of the contributions is in the 95% CI(p-value < 0.05)
+
+We are also interested to determine if senators from one party are more likely to vote YES on the bill than the other.  
+The Republic is larger than the Democrat.  
+
+Also, does the effect of contributions depend on the political party?
+Nope, we see that there's no interaction between the contributions and the party, so the effect of contributions do not depend on the political party.  
+
+Nope, the contribution and political party have no interaction, so the effect of contributions do depend on the political party.
+
