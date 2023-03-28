@@ -1,0 +1,232 @@
+---
+title: "西南大学 2022: STATS 201 Assignment 2"
+author: "RUNZE LIAO 22202032102007"
+date: '22.5.18'
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+---
+
+```{r global_options, include=FALSE}
+# Do not edit this code
+knitr::opts_chunk$set(fig.height=3)
+```
+
+## Enter your name here
+
+```{r}
+# Replace "Model Student" with your name in quotes, 
+# E.g., myname="Ruoxi Xu"
+myname="runze liao"
+```
+# Question 1
+
+## Background
+
+A manufacturer of autonomous vehicles wanted to predict the stopping distance as a function of vehicle speed (km/h).
+
+Stopping distance (m) was measured as the distance traveled after emergency braking was activated. You may assume that the observations are independent.
+
+The code below automatically generates the data for a randomly chosen student. The data are in the dataframe **Stop.df**. Variable **Speed** is the explanatory variable, and **Dist** is the response variable.
+
+## Questions of interest
+
+Make inference about the stopping distance for a given speed. In particular,
+
+ - What is the effect of a doubling in speed?
+ - Estimate the typical stopping distance for emergency braking at speeds of 50 km/h and 100 km/h.
+ - The manufacturer desires that the vehicle stops in less than 12 m at 50 km/h, at least 999 times out of 1000. Has this been achieved? [Hint, calculate the 0.998 level prediction interval.]
+
+```{r echo=FALSE, message=FALSE}
+## Do not delete this!
+## It loads the s20x library for you. If you delete it your document may not compile
+require(s20x)
+```
+
+```{r, echo=F}
+#Do not alter this code. It generates your data.
+seed=sum(  as.numeric( charToRaw(myname) )^2 )
+set.seed(seed)
+UniqSpeeds=seq(30,160,10); m=length(UniqSpeeds)
+Speed=rep(UniqSpeeds,rep(2,m)); n=length(Speed)
+mps=1000*Speed/3600 #metres per second
+decel=runif(1,7.5,9.5) #deceleration rate metres per second^2
+Dist=round(mps^2/(2*decel)*rlnorm(n,0,0.02),2)
+Stop.df=data.frame(Speed,Dist)
+```
+
+## Plot data
+```{r}
+# Add R code below to draw appropriate scatter plot(s)
+plot(Dist~Speed, data = Stop.df)
+```
+
+```{r}
+plot(log(Dist)~Speed, data = Stop.df)
+plot(log(Dist)~log(Speed), data = Stop.df)
+trendscatter(log(Dist)~log(Speed),data = Stop.df)
+```
+
+In this graph, we can see a apparent looks reasonably linear on the log scale and after we fit the log(Dist), it seems that it has a Power law relation. So we will fit the model with log(Dist) and log(Speed)  
+
+## Fit a power-law model and do assumption checks
+```{r}
+Stop.lm = lm(log(Dist)~log(Speed), data = Stop.df)
+plot(Stop.lm, which = 1)
+normcheck(Stop.lm)
+cooks20x(Stop.lm)
+```
+
+The EOV check is good, the residuals satisfy the normal distributions. The point 3 seems strange, however, we will keep it as it does not > 0.4.  
+
+```{r}
+summary(Stop.lm)
+exp(confint(Stop.lm))
+```
+The p-value of intercept and log(Speed) are all < 0.05, we have strong evidence to believe the assumption.   
+
+The estimate of intercept is from 0.0040 to 0.0045 and the estimate of Speed is from 7.28 to 7.50.  
+
+## Inference, i.e, answer questions of interest
+```{r}
+# Add R code below
+pred.df = data.frame(Speed = c(50,100))
+exp(predict(Stop.lm,pred.df,level = 0.998, interval = "confidence"))
+```
+If the Speed = 50, the Distance will be the 10.37 to 10.74, while when the Speed = 100, then the distance will be 41.69 to 42.76.
+
+
+## Method and Assumption Checks
+By plotting the original data, we cannot find a linear regression, and we use the Eov check and Normchenck, however, it does not satisfy by fitting the simple linear regression.   
+
+After logging the variables, the scatter plots showed the desired linear relationship between Speed and Distance, so we fitted a power law model explaining log Speed and log Distance. The trendscatter using the power law model seems a straight line.  
+
+The underlying model assumptions appear valid, however, we have a strange obseravtion point 3, however, it does not > 0.4, so we will keep it.
+Our final model is:  
+$$log(Dist)_i = \beta_0 + \beta_1 * log(SpeWed)_i + \epsilon_i $$
+where $\epsilon_i$~$N(0,\sigma^2)$  
+
+Our model explained 99.97% of the vairability in the Speed & Distance model.
+
+
+## Executive Summary
+We want to find the relationship between the Speed and the Distance, and we also are interested in estimate the Speed.    
+
+The model was that the Distance would follow a power law relationship with the car's Speed.  
+More specifically, the Distance will increase with the square of the Speed.  
+
+The Distance will follow a power law modelwith respect to the Speed.  
+
+ - What is the effect of a doubling in speed?  
+As the power law parameter is 2, the Distance will increase with the square of the Speed, so the stop distance will be 4 times than before.  
+
+ - Estimate the typical stopping distance for emergency braking at speeds of 50 km/h and 100 km/h.
+We can see that If the Speed = 50, stopping distance for emergency braking be the 10.37 to 10.74, while when the Speed = 100, then stopping distance for emergency braking will be 41.69 to 42.76.  
+
+ - The manufacturer desires that the vehicle stops in less than 12 m at 50 km/h, at least 999 times out of 1000. Has this been achieved? [Hint, calculate the 0.998 level prediction interval.]  
+If the Speed = 50, the Distance will be the 10.37 to 10.74, while when the Speed = 100, then the distance will be 41.69 to 42.76.
+
+\newpage
+
+
+# Question 2
+
+## Background and questions of interest
+In New Zealand, the police are usually tolerant of speeding up to 10 km/h over the posted speed limit. However this tolerance is reduced to 5 km/h during public holidays.
+
+We investigated the effect of the posted speed limit on the actual speed of vehicles, and also the effect of the reduced police tolerance for speeding that applies on holidays.
+Also, we wished to see if the effect of the reduced tolerance during holidays depended on the posted speed limit.
+
+A total of 445 independent observations were made for posted speed limits between 50 and 100 km/h. All measurements were made during periods of unrestricted traffic flow on straight stretches of road.
+
+## Read in and inspect the data:
+```{r,fig.height=3.5}
+Speed.df=read.table("Speed.txt", header=T)
+plot(Speed~Posted,main="Actual Speed by Speed Limit and Holiday", col=ifelse(Holiday=="N","red","blue"),pch=ifelse(Holiday=="N",1,2),data=Speed.df)
+legend(50,110,pch=c(1,2),col=c("red","blue"),legend=c("Holiday","Non-holiday"))
+```
+
+## Comment on plot
+The number of holiday cars is less than the Non-holidays. And we can see that the average speed in their own posted area, the Holiday's Speed is larger than the Non-holiday. The fact that appears this problem maybe in holiday, the traffic management is easy.
+
+## Fit model and check assumptions
+```{r,fig.height=3.25}
+# Add R code below
+library(s20x)
+Speed.fit = lm(Speed~Posted*Holiday, data = Speed.df)
+plot(Speed.fit, which = 1)
+normcheck(Speed.fit)
+cooks20x(Speed.fit)
+summary(Speed.fit)
+```
+The residuals plot is good, the normcheck is good which indicates the residuals are normally distributed.  The all observations seem no strong influence point.  
+However, through the summary we can see that the p-value of Posted:HolidayY(0.725) is larger than 0.05 so much, so we wonder if we can remove the interaction between the Posted and Holiday. 
+
+## Reproduce plot with fitted lines superimposed.
+```{r,fig.height=3.5}
+# Add R code below
+trendscatter(Speed~Posted, data = Speed.df)
+```
+
+The line between the holiday and Non-holiday is parallel, So we fitted the model without interaction.
+```{r}
+Speed.fit2 = lm(formula = Speed ~ Posted + Holiday, data = Speed.df)
+```
+Then we plot some graphs to see if it satisfy all assumptions.
+```{r}
+plot(Speed.fit2, which = 1)
+normcheck(Speed.fit2)
+cooks20x(Speed.fit2)
+```
+From the graphs we could see that the Residuals is good, the distribution of residuals is like Normal, the cooks distance is good, no strong influence point. It satisfied all assumption.  
+
+
+```{r}
+summary(Speed.fit2)
+```
+```{r}
+confint(Speed.fit2)
+pred.df1 = data.frame(Posted = c(50,60,70,80,90,100),Holiday = "Y")
+pred.df2 = data.frame(Posted = c(50,60,70,80,90,100),Holiday = "N")
+predict(Speed.fit2,pred.df1,interval = "confidence")
+predict(Speed.fit2,pred.df2,interval = "confidence")
+```
+```{r}
+plot(Speed ~ Posted, data = Speed.df, pch = substr(Holiday,1,1), cex =
+0.7, col = ifelse(Holiday == "Yes","blue","red"))
+lines(x = c(50,60,70,80,90,100),y = predict(Speed.fit2,pred.df1),col =
+"blue",lty = 2)
+lines(x = c(50,60,70,80,90,100),y = predict(Speed.fit2,pred.df2),col =
+"red",lty = 2)
+```
+
+We can see that they are parrael line and have no interaction.  
+
+## Methods and assumption checks  
+
+To explain the effect of the posted speed limit on the actual speed of vehicles, and
+also the effect of the reduced police tolerance for speeding that applies on holidays.  
+First we build a interaction model by having a numeric and a factor variable, however, when we do the summary we see that the p-value of the interaction part is larger than 0.05, we have no strong evidence to have it, moreover, we plotted the lines between Posted and Speed with whether having the holiday, we saw that they are parallel, which indicated that the two variables have no interaction.   
+
+So we have a latest model without interaction, and it satisfied all the assumptions, we hold the belief that the modle is quiet good.  
+Our final model is:
+$$Speed_i = \beta_0 + \beta_1 * Posted_i + \beta_2 * Holiday_i + \epsilon_i $$
+where $\epsilon_i$~$N(0,\sigma^2)$  and "Holiday" is 1 if this day is Holiday, otherwise the "Holiday" is 0.  
+
+Our model explained 98.25% of the variablity in the Holiday Speed experiment.
+## Executive Summary
+We are interested in building a model to estimate the relation between Speed and Posted with whether it is Holiday.  
+
+The relationship between Posted and Holiday has no interaction. 
+
+- With the Posted increased 1, the Speed will increase from 0.99 to 1.02.
+- When the Posted are the same, if it is in the holiday, the Speed of the vehicals the decrease about 4.17 to 5.53.  
+
+We estimate that when Posted speeds are 50, 60, 70, 80, 90, 100 and is a holiday, expected Speeds are between 50.16, 60.19, 70.22, 80.25, 90.29 and 100.32.  
+
+We estimate that when Posted speeds are 50, 60, 70, 80, 90, 100 and is no-holiday the expected Speeds are between 55.01, 65.04, 75.07, 85.10 and 105.17 respectively.
+
+

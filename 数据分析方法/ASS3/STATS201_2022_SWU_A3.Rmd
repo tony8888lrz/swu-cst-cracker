@@ -1,0 +1,192 @@
+---
+title: "西南大学 2022: STATS 201 Assignment 3"
+author: "Runze liao 222020321102007"
+date: '2022/5/31'
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+---
+
+```{r global_options, include=FALSE}
+# Do not edit this code
+knitr::opts_chunk$set(fig.height=3)
+```
+
+```{r echo=FALSE, message=F, warning=F}
+## Do not delete this!
+## It loads the s20x library for you. If you delete it 
+## your document may not compile
+require(s20x)
+require(emmeans)
+CarSpend.df = read.table(file = "CarSpend.txt", header = TRUE)
+CarSpend.df$Partner = as.factor(CarSpend.df$Partner)
+CarSpend.df$Dependents = as.factor(CarSpend.df$Dependents)
+CarSpend.df$Sex = as.factor(CarSpend.df$Sex)
+```
+
+# Question 1
+
+## Question of interest/goal of the study
+
+A leading car distributor invited visitors to its website to complete a survey to learn about how much they were willing to spend on a new car. It was of interest to see how this depended on the participant's annual income, marital status, dependents, gender and age. The variables in `CarSpend.txt` are:
+
+-   `MaxSpend`: Maximum participant will spend on a new car (\$)
+-   `Income`: Annual income (\$)
+-   `Partner`: 1=in a partnership, 0=single
+-   `Dependents`: 1=have financial dependents, 0=no financial dependents
+-   `Sex`: M or F
+-   `Age`: Age (years)
+
+## Read in and inspect the data using a pairs20x plot
+
+```{r,fig.height=5,fig.width=6}
+pairs20x(CarSpend.df[,c(1,2,3,4,5,6)])
+```
+
+## Comment on the pairs20x plot
+
+From the pairs20x plot we can see that the relation between the Partner, Dependents and Sex is quiet linear, since it is the factor variable. However, with the Income and Age, they are not having strong relationship between them. And the explanatory variables seems have little interaction between each other.
+
+## Why log the responses?
+
+**`In the analysis below you will log the response variable. Provide at least one reason why this is a sensible thing to do`**
+With the pairs20x plot, we can indicate that it is used multiplicative linear model to fit a nice model. As needs to fit the linear model, we need log transformation to turn the multiplicative effects in to additive effect. So we choose to log the responses variable.
+
+
+
+## Fit model and check assumptions
+```{r}
+CarSpend.fit = lm(MaxSpend~Income+Partner+Dependents+Sex+Age, data = CarSpend.df)
+```
+we can see that the residual plot is quiet strange.  
+```{r}
+CarSpend.fit2 = lm(log(MaxSpend)~Income+Partner+Dependents+Sex+Age, data = CarSpend.df)
+plot(CarSpend.fit2 , which = 1)
+normcheck(CarSpend.fit2)
+cooks20x(CarSpend.fit2)
+```
+
+From the residual plot, we can see that we've been satisfied the eov assumption, the normcheck is fine, No too strong influence point, however, point 36, 145 seems strange, but we will keep it. All assumption were satisfied, let us see the summary part.
+
+```{r}
+summary(CarSpend.fit2)
+```
+By applying the Occam's Razor, we choose to remove the coefficients that are out of significant at the 5% level(those p-value > 0.05), which means we will remove the Dependents, Age. keeping the Income and Partner, Sex to fit a latest model.
+
+```{r}
+CarSpend.fit3 = lm(log(MaxSpend)~Income+Partner+Sex, data = CarSpend.df)
+summary(CarSpend.fit3)
+```
+All the assumptions seem to be satisfied, we have evidence to keep all the coefficients(p-value < 0.05), it is a good fit model, we can trust our final model.
+**`Fit a linear regression model for log(MaxSpend) that contains the five explanatory terms log(Income), Partner, Dependents, Sex, Age. Then, apply Occam's Razor − that is, simplify the model by successively removing the least significant term until all are significant at the 5% level.`**
+
+```{r}
+exp(confint(CarSpend.fit3))
+```
+
+## Method and Assumption Checks
+By having looked at the Pair20 plot, we got that the Max Spend in car were related to serveral explanatory variables, So we construct a multiple linear regression model with a suitable selection of the explanatory variables, moreover, we choose to log the responses variable by having the transformation turn the multiplicative effects in to additive effect.   
+
+Furthermore, we decide to keep the Income and Partner, Sex to fit a latest model, deleting the the Dependents, Age, because they were out of the 95% confidence interval.
+
+So our final model is:
+$$MaxSpend_i = \beta_0 + \beta_1 \times Income_i + \beta_2 \times Partner_i + \beta_3 \times Sex_i + \epsilon_i $$
+
+where $\epsilon_i$ ~ $iid.N(0,\sigma^2)$. Here our indicator variable takes value 1 if the Sex is Male.  
+
+Our model explains about 36.3% of the variability in people's max spend in cars.
+
+## Executive Summary
+We wanted to have a model to explain how much visitors want to spend on a new car depending on the income, marital status, dependents, gender and age.  
+We have estimated that: 
+
+- The Male would choose to spend 1.26 to 1.46 than the Female on a new car. 
+
+- People who got married are more likely to spend 0.84 to 0.97 than those who not. 
+
+- For each one more in thier Income, we estmated that they would like spending incresing 1 than before.
+
+
+\newpage
+
+# Question 2
+
+## Question of interest/goal of the study
+
+A company was interested in assessing 3 different display panels used by air traffic controllers. An experiment was conducted by simulating 4 different emergency conditions with 4 qualified air traffic controllers randomly assigned to each display/emergency combination. The time (in seconds) required to stabilise the emergency condition was recorded. The data are stored in the text file `airtraffic.txt`, which contains the variables:
+
+-   `time`: the time required to stabilise the emergency condition (seconds)
+-   `display`: the display panel: 1, 2 or 3
+-   `emergency`: the simulated emergency condition: A, B, C or D
+
+We are **only interested in which display has the lowest time** to stabilise the emergencies, by how much lower it is than the other displays and whether answer this depends on the type of emergency simulated. You should *NOT* quantify extraneous information.
+
+## Read in and plot the data
+
+```{r}
+airtraffic.df = read.table(file = "airtraffic.txt", header = TRUE)
+airtraffic.df$display = as.factor(airtraffic.df$display)
+airtraffic.df$emergency = as.factor(airtraffic.df$emergency)
+interactionPlots(time~display+emergency, data = airtraffic.df)
+```
+
+## Comment on the plot  
+
+By looking at the interaction plot of display and emergency, we see those parallel lines, which indicating that the two explanatory variables have no interaction. And on average we can see that with the same emergency, time of display 3 > 1 > 2, and with the same display, time of emergency D > B > C > A.
+
+## Fit model, check assumptions and do inference (CIs etc)
+```{r}
+airtraffic.fit_inter = lm(time~display*emergency, data = airtraffic.df)
+summary(airtraffic.fit_inter)
+```
+From the summary with interaction we can see that they have no interaction becasue the the Coefficients of interaction part are out of the 95% confidence interval.  
+
+So we choose to fit a model with no interaction and a two-ANOVA model.
+```{r}
+airtraffic.fit = lm(time~display+emergency, data = airtraffic.df)
+```
+```{r}
+plot(airtraffic.fit,which = 1)
+normcheck(airtraffic.fit)
+cooks20x(airtraffic.fit)
+```
+A little bit strange in the residual plot, and the normal check is strange too, however, we will tolerant it. From the cooks plot, no strong influence point, it seems it is a good model, and satisfy most of the assumptions. We can trust our model.
+
+```{r}
+summary(airtraffic.fit)
+```
+All Coefficients are in 95% confidence interval(p-value < 0.05), it seems that it is a nice model we can trust.
+```{r}
+confint(airtraffic.fit)
+```
+```{r}
+#airtraffic.emmeans = emmeans(airtraffic.fit, specs = display~emergency)
+summary2way(airtraffic.fit, page = "nointeraction")
+```
+## Method and Assumption Checks
+In this case, we have 2 explanatory factors variable, namely the display and emergency, the display can be 1 or 2 or 3, the emergency could be A, B and C and D, first we fit a two-way ANOVA model with interaction, however, the coefficient of the interaction part is out of the 95% CI, so finally we fitted a two-way ANOVA model with no interaction between the display and emergency.  
+
+Through the interaction plot we can see that the two variables have no interaction(it is parallel), so we build a linear model without interaction by having tow factors explanatory variables, the EOV check is not so good, the Normal Check is not so good, and no other influence points, nearly all the assumptions were satisfied by our final model.   
+
+
+Our model explains about 97.9% of the variability in the time required to stabilise the emergency condition.  
+
+
+## Executive Summary
+We were eager to have a model to explain the time required to stabilise the emergency condition influenced by its display and its emergency.  
+
+We found that the effect that the time required to stabilise the emergency condition depends on display and emergency, and they've got no interaction, so we can see them individually.   
+
+
+We estimate that: 
+
+- With the same emergency, the time of using display 2 is on average less 1.41 between 4.33 than using display 1.
+
+- With the same emergency, the time of using display 2 is on average less 11.10 between 14.02 than using display 3.  
+
+So display 2 has the lowest time to stabilize the emergencies, and this does not depend on the type of emergency simulated, because it has no interaction between the each other(the interaction part of coefficient are out of the 95% CI).
+
+

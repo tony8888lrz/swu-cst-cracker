@@ -1,0 +1,30 @@
+As always, to get full marks the answer must use intelligible English.
+
+Q1 18 marks
+R code 7 marks
+ - 2 marks for plots (1 mk for each plot)
+ - 2 marks for fitting model and checks
+ - 3 marks for R code for inference
+MAC section 4 marks. 
+ - 1 mark for clear statement about fitted model
+ - 1 mark for mentioning assumption checks
+ - 1 mark for equation
+ - 1 mark for Rsq
+Exec Summary 7 marks
+ - 1 mark or statement of a significant relationship
+ - 2 marks for CI for effect (must say multiplicate change to medians, etc)
+ - 2 marks for CIs for stopping distances
+ - 2 marks for answering prediction question
+
+Q2 17 marks
+Plot comments 2 marks
+R code for model selection and checking 4 marks
+Drawing plot with fitted lines 2 marks
+MAC section 4 marks. 
+ - 1 mark for clear statement about fitted model
+ - 1 mark for mentioning assumption checks
+ - 1 mark for equation
+ - 1 mark for Rsq
+Exec Summary 5 marks
+ - 2 marks for statement of result (Need that both are significant with "no interaction" or "not depending on the other" kind of wording)
+ - 3 marks for CIs (must use "expected" or "on average")

@@ -1,0 +1,102 @@
+---
+title: "西南大学 2022: STATS 201 Assignment 1a"
+author: "Your Name and ID Number here"
+date: 'Wed 27th April before class at 15:50'
+output:
+  word_document: default
+  pdf_document: default
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+---
+
+```{r global_options, include=FALSE}
+# Do not edit this code
+knitr::opts_chunk$set(fig.height=3)
+```
+
+# Background
+
+Students in a class were asked to conduct an experiment to determine their average stride length (步幅). That is, the distance traveled with every step.
+
+Each student was instructed to find a flat location where they could walk for 5 to 15 minutes at their natural gait, unimpeded by traffic or other pedestrians. They used a smart device to record the number of steps, and the distance walked (in metres). They were asked to repeat this task about 30 times.
+
+The code below automatically generates the data for a randomly chosen student. The data are in the dataframe **Stride.df**. Variable **steps** is the explanatory variable, and **distance** is the response variable.
+
+# Question of interest
+
+Make inference about the average stride length of the student using a simple linear model. 
+
+You need to conduct the analysis using R, complete the Methods and Assumptions Checks, and write the Executive Summary.
+
+
+```{r echo=FALSE, message=FALSE}
+# Do not delete this!
+# It loads the s20x library for you. If you delete it your document may not compile
+require(s20x)
+```
+
+# Enter your name here
+
+```{r}
+# Replace "Enter your name here" with your name in quotes, 
+# E.g., myname="Ruoxi Xu"
+myname="runze liao"
+```
+
+```{r, echo=F}
+#Do not alter this code. It generates your data.
+seed=sum(  as.numeric( charToRaw(myname) )^2 )
+set.seed(seed)
+n=rpois(1,30)
+steps=round(rnorm(n,1000,200))
+distance=round(steps*rnorm(1,0.7,0.02)+rnorm(n,0,10))
+Stride.df=data.frame(steps,distance)
+```
+
+
+# Scatter plot of steps vs distance
+```{r}
+# Add R code below to draw the scatter plot
+plot(steps~distance, data = Stride.df)
+
+```
+
+# Fit a simple linear model and do assumption checks
+```{r}
+# Add R code below
+# NOTE: If any assumptions look questionable, mention this in the Methods and Assumption Checks,
+# but do not do any alterations to the model or data 
+Stride.fit = lm(steps~distance,data = Stride.df)
+plot(Stride.fit,which=1)#test whether same distribution 有问题哦，数据可能不满足同一分布的假设
+normcheck(Stride.fit)#normal check looks great, satisfy the normal Distribution
+cooks20x(Stride.fit)#observe the Cook's Distance plot, find the distance > 0.4
+
+```
+# Inference, i.e, check for significance and calculate confidence intervals
+```{r}
+# Add R code below
+summary(Stride.fit) #R^2 is 0.9958.
+pred.df = data.frame(Test = c(0,10,20))
+predict(Stride.fit,pred.df)
+predict(Stride.fit,pred.df,interval = "confidence")
+
+```
+
+
+
+# Method and Assumption Checks
+**The relationship between number of steps and distance walked looks very linear, so a simple linear regression model was fitted. However, when we do the Residual Analysis, the Residual plot seems not the same, which indicates that maybe the residual does not follow the same distribution.**
+
+The fitted model is
+$$distance_i= \beta_0 + \beta_1 \times steps_i + \epsilon_i$$
+where $\epsilon_i$ ~ $N(0,\sigma^2)$.
+
+**Our model explained 99.58% of the variability in the students' final exam marks**
+
+
+
+# Executive Summary
+**We are interested in building a model to estimate the steps with distance**
+**The relation between the steps and distance is quite linear. when we do the Residual Analysis, the Residual plot seems not the same, which indicates that maybe the residual does not follow the same distribution.**
+**the average stride length is 1.43862, For instance, if we walk 1 steps, the distance is about 1.43862 meters**
